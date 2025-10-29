@@ -1,23 +1,27 @@
+SELECT * 
+FROM gd_esquema.Maestra
+
+
 USE GD2C2025
 GO
 
---CREATE SCHEMA LOS_QUERYOSOS;
---GO
+CREATE SCHEMA LOS_QUERYOSOS;
+GO
 
 -- Creacion de tablas
 
 CREATE TABLE LOS_QUERYOSOS.Institucion(
-	institucion_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
-	institucion_Nombre NVARCHAR(255),
-	institucion_RazonSocial NVARCHAR(255),
-	institucion_Cuit NVARCHAR(255)
+	Institucion_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
+	Institucion_Nombre NVARCHAR(510),
+	Institucion_RazonSocial NVARCHAR(510),
+	Institucion_Cuit NVARCHAR(510)
 );
 GO
 
 CREATE TABLE LOS_QUERYOSOS.Sede(
 	sede_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
-	sede_Nombre NVARCHAR(255),
-	sede_Direccion BIGINT,  --fk a institucion
+	sede_Nombre NVARCHAR(510),
+	sede_Direccion BIGINT,  --fk a direccion
 	sede_Contacto BIGINT,
 	sede_Institucion BIGINT -- FK a Institucion
 );
@@ -31,8 +35,8 @@ CREATE TABLE LOS_QUERYOSOS.Curso(
 	curso_FechaFin DATETIME2(6),
 	curso_DuracionMeses BIGINT,
 	curso_PrecioMensual DECIMAL(38,2),
-	curso_Categoria VARCHAR(255), --FK a Categoria
-	curso_Turno VARCHAR(255), -- FK a Turno
+	curso_Categoria BIGINT, --FK a Categoria
+	curso_Turno BIGINT, -- FK a Turno
 	curso_Profesor BIGINT,--FK a Profesor
 	curso_Sede BIGINT,--FK a Sede
 	--falta curso_Dia en la tabla curso? 
@@ -42,9 +46,9 @@ GO
 
 CREATE TABLE LOS_QUERYOSOS.Profesor(
 	profesor_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
-	profesor_Dni NVARCHAR(255),
-	profesor_Nombre NVARCHAR(255),
-	profesor_Apellido NVARCHAR(255),
+	profesor_Dni NVARCHAR(510),
+	profesor_Nombre NVARCHAR(510),
+	profesor_Apellido NVARCHAR(510),
 	profesor_FechaNacimiento DATETIME2(6),
 	profesor_Direccion BIGINT, --FK a Direccion
 	profesor_Contacto BIGINT --FK a Contacto
@@ -67,7 +71,7 @@ GO
 CREATE TABLE LOS_QUERYOSOS.Inscripcion(
 	inscripcion_Numero BIGINT IDENTITY(1,1) PRIMARY KEY,
 	inscripcion_Fecha DATETIME2(6),
-	inscripcion_Estado VARCHAR(255),
+	inscripcion_Estado BIGINT, --FK a estado
 	inscripcion_FechaRespuesta DATETIME2(6),
 	inscripcion_Alumno BIGINT, --FK a Alumno
 	inscripcion_Curso BIGINT --FK a Curso
@@ -148,7 +152,7 @@ CREATE TABLE LOS_QUERYOSOS.Factura(
 	factura_FechaEmision DATETIME2(6),
 	factura_FechaVencimiento DATETIME2(6) ,
 	factura_Alumno BIGINT --FK a Alumno
-	--factura_total no esta en el DER pero si en la tabla maestra o es detalleFact_importe?
+	--factura_total no esta en el DER pero si en la tabla maestra o es detalleFact_importe?  : Como era algo calculable no se ponia
 );
 GO
 
@@ -173,7 +177,7 @@ CREATE TABLE LOS_QUERYOSOS.Pago(
 	pago_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
 	pago_Fecha DATETIME2(6),
 	pago_Importe DECIMAL(18,2),
-	pago_Medio_De_Pago VARCHAR(255),--FK a Medio_De_Pago
+	pago_Medio_De_Pago BIGINT,--FK a Medio_De_Pago
 	pago_Factura BIGINT --FK a Factura
 );
 GO
@@ -186,20 +190,20 @@ GO
 
 CREATE TABLE LOS_QUERYOSOS.Provincia(
 	provincia_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
-	provincia_Nombre VARCHAR(255)
+	provincia_Nombre VARCHAR(510)
 );
 GO
 
 CREATE TABLE LOS_QUERYOSOS.Localidad(
 	localidad_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
-	localidad_Nombre VARCHAR(255),
+	localidad_Nombre VARCHAR(510),
 	localidad_Provincia BIGINT -- fk a provincia
 );
 GO
 
 CREATE TABLE LOS_QUERYOSOS.Direccion(
 	direccion_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
-	direccion_Calle VARCHAR(255),
+	direccion_Calle VARCHAR(510),
 	direccion_Numero BIGINT,
 	direccion_Localidad BIGINT -- fk a Localidad
 );
@@ -208,7 +212,7 @@ GO
 CREATE TABLE LOS_QUERYOSOS.Contacto(
 	contacto_ID BIGINT IDENTITY(1,1) PRIMARY KEY,
 	contacto_Mail VARCHAR(255),
-	contacto_Telefono BIGINT
+	contacto_Telefono VARCHAR(255)
 );
 GO
 
@@ -219,8 +223,8 @@ CREATE TABLE LOS_QUERYOSOS.Dia(
 GO
 
 CREATE TABLE LOS_QUERYOSOS.Dia_Curso(
-	dia_Codigo BIGINT,
-	curso_Codigo BIGINT
+	dia_Curso_Dia BIGINT,--FK a dia
+	dia_Curso_Curso BIGINT--FK a curso
 );
 GO
 
@@ -275,6 +279,11 @@ ALTER TABLE LOS_QUERYOSOS.Curso
 ADD CONSTRAINT FK_Curso_Turno
 FOREIGN KEY (Curso_Turno) REFERENCES LOS_QUERYOSOS.Turno(Turno_Codigo);
 
+-- Curso -> Profesor
+ALTER TABLE LOS_QUERYOSOS.Curso
+ADD CONSTRAINT FK_Curso_Profesor
+FOREIGN KEY (Curso_Profesor) REFERENCES LOS_QUERYOSOS.Profesor(Profesor_Codigo);
+
 -- Dia_Curso -> Curso
 ALTER TABLE LOS_QUERYOSOS.Dia_Curso
 ADD CONSTRAINT FK_Dia_Curso_Curso
@@ -290,6 +299,11 @@ ALTER TABLE LOS_QUERYOSOS.Profesor
 ADD CONSTRAINT FK_Profesor_Direccion
 FOREIGN KEY (Profesor_Direccion) REFERENCES LOS_QUERYOSOS.Direccion(Direccion_Codigo);
 
+-- Profesor -> Contacto
+ALTER TABLE LOS_QUERYOSOS.Profesor
+ADD CONSTRAINT FK_Profesor_Contacto
+FOREIGN KEY (Profesor_Contacto) REFERENCES LOS_QUERYOSOS.Contacto(Contacto_ID);
+
 -- Alumno -> Dirección
 ALTER TABLE LOS_QUERYOSOS.Alumno
 ADD CONSTRAINT FK_Alumno_Direccion
@@ -298,7 +312,7 @@ FOREIGN KEY (Alumno_Direccion) REFERENCES LOS_QUERYOSOS.Direccion(Direccion_Codi
 -- Alumno -> Contacto
 ALTER TABLE LOS_QUERYOSOS.Alumno
 ADD CONSTRAINT FK_Alumno_Contacto
-FOREIGN KEY (Alumno_Contacto) REFERENCES LOS_QUERYOSOS.Contacto(Contacto_Codigo);
+FOREIGN KEY (Alumno_Contacto) REFERENCES LOS_QUERYOSOS.Contacto(Contacto_ID);
 
 -- Inscripción -> Alumno
 ALTER TABLE LOS_QUERYOSOS.Inscripcion
@@ -318,17 +332,17 @@ FOREIGN KEY (Inscripcion_Estado) REFERENCES LOS_QUERYOSOS.Estado(Estado_Codigo);
 -- Evaluacion_Curso -> Modulo
 ALTER TABLE LOS_QUERYOSOS.Evaluacion_Curso
 ADD CONSTRAINT FK_Evaluacion_Curso_Modulo
-FOREIGN KEY (Evaluacion_Curso_Modulo) REFERENCES LOS_QUERYOSOS.Modulo(Modulo_Codigo);
+FOREIGN KEY (Evaluacion_Curso_Modulo) REFERENCES LOS_QUERYOSOS.Modulo(Modulo_Numero);
 
--- Evaluacion_Alumno -> Evaluacion_Curso
-ALTER TABLE LOS_QUERYOSOS.Evaluacion_Alumno
-ADD CONSTRAINT FK_Evaluacion_Alumno_Evaluacion_Curso
-FOREIGN KEY (Evaluacion_Alumno_Evaluacion) REFERENCES LOS_QUERYOSOS.Evaluacion_Curso(Evaluacion_Curso_Codigo);
+-- Evaluacion_Curso_Alumno -> Evaluacion_Curso
+ALTER TABLE LOS_QUERYOSOS.Evaluacion_Curso_Alumno
+ADD CONSTRAINT FK_Evaluacion_Curso_Alumno_Evaluacion_Curso
+FOREIGN KEY (Evaluacion_Curso_Alumno_Codigo) REFERENCES LOS_QUERYOSOS.Evaluacion_Curso(Evaluacion_Curso_Codigo);
 
--- Evaluacion_Alumno -> Alumno
-ALTER TABLE LOS_QUERYOSOS.Evaluacion_Alumno
-ADD CONSTRAINT FK_Evaluacion_Alumno_Alumno
-FOREIGN KEY (Evaluacion_Alumno_Alumno) REFERENCES LOS_QUERYOSOS.Alumno(Alumno_Codigo);
+-- Evaluacion_Curso_Alumno -> Alumno
+ALTER TABLE LOS_QUERYOSOS.Evaluacion_Curso_Alumno
+ADD CONSTRAINT FK_Evaluacion_Curso_Alumno_Alumno
+FOREIGN KEY (Evaluacion_Curso_Alumno_Alumno) REFERENCES LOS_QUERYOSOS.Alumno(Alumno_Codigo);
 
 -- Evaluacion_Alumno -> Alumno
 ALTER TABLE LOS_QUERYOSOS.Evaluacion_Alumno
@@ -343,12 +357,17 @@ FOREIGN KEY (Examen_Final_Curso) REFERENCES LOS_QUERYOSOS.Curso(Curso_Codigo);
 -- Evaluacion_Final -> Profesor
 ALTER TABLE LOS_QUERYOSOS.Evaluacion_Final
 ADD CONSTRAINT FK_Evaluacion_Final_Profesor
-FOREIGN KEY (Evaluacion_Final_Profespr) REFERENCES LOS_QUERYOSOS.Profesor(Profesor_Codigo);
+FOREIGN KEY (Evaluacion_Final_Profesor) REFERENCES LOS_QUERYOSOS.Profesor(Profesor_Codigo);
 
 -- Evaluacion_Final -> Alumno
 ALTER TABLE LOS_QUERYOSOS.Evaluacion_Final
 ADD CONSTRAINT FK_Evaluacion_Final_Alumno
 FOREIGN KEY (Evaluacion_Final_Alumno) REFERENCES LOS_QUERYOSOS.Alumno(Alumno_Codigo);
+
+-- Encuesta -> Curso
+ALTER TABLE LOS_QUERYOSOS.Encuesta
+ADD CONSTRAINT FK_Encuesta_Curso
+FOREIGN KEY (Encuesta_Curso) REFERENCES LOS_QUERYOSOS.Curso(Curso_Codigo);
 
 -- Pregunta -> Encuesta
 ALTER TABLE LOS_QUERYOSOS.Pregunta
@@ -397,9 +416,166 @@ FOREIGN KEY (Trabajo_Practico_Alumno) REFERENCES LOS_QUERYOSOS.Alumno(Alumno_Cod
 
 
 --Inserts de datos a nuestro modelo
+
+--Datos de Institucion
 INSERT INTO LOS_QUERYOSOS.Institucion (Institucion_Nombre, Institucion_RazonSocial, Institucion_Cuit)
 SELECT DISTINCT
     Institucion_Nombre,
     Institucion_RazonSocial,
     Institucion_Cuit
-FROM gd_esquema.Maestra;
+FROM gd_esquema.Maestra
+WHERE Institucion_Cuit IS NOT NULL;
+
+--Datos de provincias
+INSERT INTO LOS_QUERYOSOS.Provincia (Provincia_Nombre)
+SELECT DISTINCT sede_provincia
+FROM gd_esquema.Maestra
+WHERE sede_provincia IS NOT NULL
+UNION
+SELECT DISTINCT profesor_provincia
+FROM gd_esquema.Maestra
+WHERE profesor_provincia IS NOT NULL
+UNION
+SELECT DISTINCT alumno_provincia
+FROM gd_esquema.Maestra
+WHERE alumno_provincia IS NOT NULL;
+
+--datos de localidades
+INSERT INTO LOS_QUERYOSOS.Localidad (Localidad_Nombre, Localidad_Provincia)
+SELECT DISTINCT m.Sede_Localidad, p.provincia_Codigo
+FROM gd_esquema.Maestra m
+	JOIN LOS_QUERYOSOS.Provincia p ON p.Provincia_Nombre = m.Sede_Provincia
+WHERE m.Sede_Localidad IS NOT NULL
+UNION
+SELECT DISTINCT m.Profesor_Localidad, p.provincia_Codigo
+FROM gd_esquema.Maestra m
+	JOIN LOS_QUERYOSOS.Provincia p ON p.Provincia_Nombre = m.Profesor_Provincia
+WHERE m.Profesor_Localidad IS NOT NULL
+UNION
+SELECT DISTINCT m.Alumno_Localidad, p.provincia_Codigo
+FROM gd_esquema.Maestra m
+	JOIN LOS_QUERYOSOS.Provincia p ON p.Provincia_Nombre = m.Alumno_Provincia
+WHERE m.Alumno_Localidad IS NOT NULL;
+
+--Datos de direcciones
+INSERT INTO LOS_QUERYOSOS.Direccion (Direccion_Calle, Direccion_Numero, Direccion_Localidad)
+SELECT DISTINCT
+    LEFT(m.Sede_Direccion, CHARINDEX('N°', m.Sede_Direccion) - 2) AS Direccion_Calle,
+    RIGHT(m.Sede_Direccion, LEN(m.Sede_Direccion) - CHARINDEX('N°', m.Sede_Direccion) - 1) AS Direccion_Numero,
+    l.localidad_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Localidad l ON l.Localidad_Nombre = m.Sede_Localidad
+WHERE m.Sede_Direccion IS NOT NULL
+
+UNION
+
+SELECT DISTINCT
+    LEFT(m.Profesor_Direccion, CHARINDEX('N°', m.Profesor_Direccion) - 2),
+    RIGHT(m.Profesor_Direccion, LEN(m.Profesor_Direccion) - CHARINDEX('N°', m.Profesor_Direccion) - 1),
+    l.localidad_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Localidad l ON l.Localidad_Nombre = m.Profesor_Localidad
+WHERE m.Profesor_Direccion IS NOT NULL
+
+UNION
+
+SELECT DISTINCT
+    LEFT(m.Alumno_Direccion, CHARINDEX('N°', m.Alumno_Direccion) - 2),
+    RIGHT(m.Alumno_Direccion, LEN(m.Alumno_Direccion) - CHARINDEX('N°', m.Alumno_Direccion) - 1),
+    l.localidad_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Localidad l ON l.Localidad_Nombre = m.Alumno_Localidad
+WHERE m.Alumno_Direccion IS NOT NULL;
+
+--Datos de Contactos
+INSERT INTO LOS_QUERYOSOS.Contacto (Contacto_Mail, Contacto_Telefono)
+SELECT DISTINCT m.Sede_Mail, m.Sede_Telefono
+FROM gd_esquema.Maestra m
+WHERE m.Sede_Mail IS NOT NULL OR m.Sede_Telefono IS NOT NULL
+
+UNION
+
+SELECT DISTINCT m.Profesor_Mail, m.Profesor_Telefono
+FROM gd_esquema.Maestra m
+WHERE m.Profesor_Mail IS NOT NULL OR m.Profesor_Telefono IS NOT NULL
+
+UNION
+
+SELECT DISTINCT m.Alumno_Mail, m.Alumno_Telefono
+FROM gd_esquema.Maestra m
+WHERE m.Alumno_Mail IS NOT NULL OR m.Alumno_Telefono IS NOT NULL;
+
+--Datos Sede
+INSERT INTO LOS_QUERYOSOS.Sede (Sede_Nombre, Sede_Institucion, Sede_Direccion, Sede_Contacto)
+SELECT DISTINCT
+    m.Sede_Nombre,
+    i.Institucion_Codigo,
+    d.direccion_Codigo,
+    c.Contacto_ID
+FROM gd_esquema.Maestra m
+	JOIN LOS_QUERYOSOS.Institucion i ON i.Institucion_Cuit = m.Institucion_Cuit
+	JOIN LOS_QUERYOSOS.Direccion d ON 
+		d.Direccion_Calle = LEFT(m.Sede_Direccion, CHARINDEX('N°', m.Sede_Direccion) - 2) AND
+		d.Direccion_Numero = RIGHT(m.Sede_Direccion, LEN(m.Sede_Direccion) - CHARINDEX('N°', m.Sede_Direccion) - 1)
+	JOIN LOS_QUERYOSOS.Contacto c ON 
+		c.Contacto_Mail = m.Sede_Mail AND
+		c.Contacto_Telefono = m.Sede_Telefono
+WHERE m.Sede_Nombre IS NOT NULL;
+
+-- CategoriaCurso
+INSERT INTO LOS_QUERYOSOS.Categoria (categoria_Detalle)
+SELECT DISTINCT Curso_Categoria
+FROM gd_esquema.Maestra
+WHERE Curso_Categoria IS NOT NULL;
+
+-- Turno
+INSERT INTO LOS_QUERYOSOS.Turno (turno_Detalle)
+SELECT DISTINCT Curso_Turno
+FROM gd_esquema.Maestra
+WHERE Curso_Turno IS NOT NULL;
+
+--Curso
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- Eliminar todas las Foreign Keys del esquema
+DECLARE @sql NVARCHAR(MAX) = N'';
+
+SELECT @sql += N'ALTER TABLE [' + s.name + '].[' + t.name + '] DROP CONSTRAINT [' + fk.name + '];'
+FROM sys.foreign_keys fk
+JOIN sys.tables t ON fk.parent_object_id = t.object_id
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE s.name = 'LOS_QUERYOSOS';
+
+EXEC sp_executesql @sql;
+
+-- Eliminar todas las tablas del esquema
+SET @sql = N'';
+
+SELECT @sql += N'DROP TABLE [' + s.name + '].[' + t.name + '];'
+FROM sys.tables t
+JOIN sys.schemas s ON t.schema_id = s.schema_id
+WHERE s.name = 'LOS_QUERYOSOS';
+
+EXEC sp_executesql @sql;
+
+-- Finalmente eliminar el esquema
+DROP SCHEMA IF EXISTS LOS_QUERYOSOS;
