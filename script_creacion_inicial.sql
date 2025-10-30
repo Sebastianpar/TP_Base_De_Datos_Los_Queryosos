@@ -1,6 +1,7 @@
+/*
 SELECT * 
 FROM gd_esquema.Maestra
-
+*/
 
 USE GD2C2025
 GO
@@ -86,12 +87,12 @@ CREATE TABLE LOS_QUERYOSOS.Evaluacion_Curso(
 );
 GO
 
-CREATE TABLE LOS_QUERYOSOS.Evaluacion_Curso_Alumno(
-	evaluacion_Curso_Alumno_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
-	evaluacion_Curso_Alumno_Alumno BIGINT,
-	evaluacion_Curso_Alumno_Instancia BIGINT,
-	evaluacion_curso_Alumno_Nota BIGINT,
-	evaluacion_curso_Alumno_Presente BIT,
+CREATE TABLE LOS_QUERYOSOS.Evaluacion_Alumno(
+	evaluacion_Alumno_Codigo BIGINT, --IDENTITY(1,1) PRIMARY KEY,
+	evaluacion_Alumno_Alumno BIGINT,
+	evaluacion_Alumno_Instancia BIGINT,
+	evaluacion_Alumno_Nota BIGINT,
+	evaluacion_Alumno_Presente BIT,
 );
 GO
 
@@ -120,6 +121,21 @@ CREATE TABLE LOS_QUERYOSOS.Encuesta(
 	--falta pregunta 1..4, nota 1..4, (tabla pregunta y respuesta)
 );
 GO
+
+CREATE TABLE LOS_QUERYOSOS.Pregunta (
+    pregunta_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
+    pregunta_Detalle VARCHAR(255),
+    pregunta_Encuesta BIGINT -- FK a Encuesta
+);
+GO
+
+CREATE TABLE LOS_QUERYOSOS.Respuesta (
+    respuesta_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
+    respuesta_Detalle VARCHAR(255),
+    respuesta_Pregunta BIGINT -- FK a Pregunta
+);
+GO
+
 CREATE TABLE LOS_QUERYOSOS.Inscripcion_Final(
 	inscripcion_Final_Numero BIGINT IDENTITY(1,1) PRIMARY KEY,
 	inscripcion_Final_Fecha DATETIME2(6),
@@ -287,7 +303,7 @@ FOREIGN KEY (Curso_Profesor) REFERENCES LOS_QUERYOSOS.Profesor(Profesor_Codigo);
 -- Dia_Curso -> Curso
 ALTER TABLE LOS_QUERYOSOS.Dia_Curso
 ADD CONSTRAINT FK_Dia_Curso_Curso
-FOREIGN KEY (Dia_Curso_Curso) REFERENCES LOS_QUERYOSOS.Dia_Curso(Curso_Codigo);
+FOREIGN KEY (Dia_Curso_Curso) REFERENCES LOS_QUERYOSOS.Curso(Curso_Codigo);
 
 -- Dia_Curso -> Dia
 ALTER TABLE LOS_QUERYOSOS.Dia_Curso
@@ -334,21 +350,22 @@ ALTER TABLE LOS_QUERYOSOS.Evaluacion_Curso
 ADD CONSTRAINT FK_Evaluacion_Curso_Modulo
 FOREIGN KEY (Evaluacion_Curso_Modulo) REFERENCES LOS_QUERYOSOS.Modulo(Modulo_Numero);
 
--- Evaluacion_Curso_Alumno -> Evaluacion_Curso
-ALTER TABLE LOS_QUERYOSOS.Evaluacion_Curso_Alumno
-ADD CONSTRAINT FK_Evaluacion_Curso_Alumno_Evaluacion_Curso
-FOREIGN KEY (Evaluacion_Curso_Alumno_Codigo) REFERENCES LOS_QUERYOSOS.Evaluacion_Curso(Evaluacion_Curso_Codigo);
+-- Evaluacion_Alumno -> Evaluacion_Curso
+ALTER TABLE LOS_QUERYOSOS.Evaluacion_Alumno
+ADD CONSTRAINT FK_Evaluacion_Alumno_Codigo
+FOREIGN KEY (Evaluacion_Alumno_Codigo) REFERENCES LOS_QUERYOSOS.Evaluacion_Curso(Evaluacion_Curso_Codigo);
 
--- Evaluacion_Curso_Alumno -> Alumno
-ALTER TABLE LOS_QUERYOSOS.Evaluacion_Curso_Alumno
-ADD CONSTRAINT FK_Evaluacion_Curso_Alumno_Alumno
-FOREIGN KEY (Evaluacion_Curso_Alumno_Alumno) REFERENCES LOS_QUERYOSOS.Alumno(Alumno_Codigo);
+-- Evaluacion_Alumno -> Alumno
+ALTER TABLE LOS_QUERYOSOS.Evaluacion_Alumno
+ADD CONSTRAINT FK_Evaluacion_Alumno_Alumno
+FOREIGN KEY (Evaluacion_Alumno_Alumno) REFERENCES LOS_QUERYOSOS.Alumno(Alumno_Codigo);
 
+/*Creo que este no va
 -- Evaluacion_Alumno -> Alumno
 ALTER TABLE LOS_QUERYOSOS.Evaluacion_Alumno
 ADD CONSTRAINT FK_Evaluacion_Alumno_Curso
 FOREIGN KEY (Evaluacion_Alumno_Curso) REFERENCES LOS_QUERYOSOS.Curso(Curso_Codigo);
-
+*/
 -- Examen_Final -> Curso
 ALTER TABLE LOS_QUERYOSOS.Examen_Final
 ADD CONSTRAINT FK_Examen_Final_Curso
@@ -380,34 +397,34 @@ ADD CONSTRAINT FK_Respuesta_Pregunta
 FOREIGN KEY (Respuesta_Pregunta) REFERENCES LOS_QUERYOSOS.Pregunta(Pregunta_Codigo);
 
 -- Factura -> Periodo
-ALTER TABLE LOS_QUERYOSOS.Factura
-ADD CONSTRAINT FK_Factura_Periodo
-FOREIGN KEY (Factura_Periodo) REFERENCES LOS_QUERYOSOS.Periodo(Periodo_Numero);
+ALTER TABLE LOS_QUERYOSOS.Detalle_Factura
+ADD CONSTRAINT FK_Detalle_Factura_Periodo
+FOREIGN KEY (Detalle_Factura_Periodo) REFERENCES LOS_QUERYOSOS.Periodo(Periodo_Numero);
 
 -- Detalle_Factura -> Factura
 ALTER TABLE LOS_QUERYOSOS.Detalle_Factura
 ADD CONSTRAINT FK_Detalle_Factura_Factura
-FOREIGN KEY (Detalle_Factura_Factura) REFERENCES LOS_QUERYOSOS.Factura(Factura_Codigo);
+FOREIGN KEY (Detalle_Factura_Factura) REFERENCES LOS_QUERYOSOS.Factura(Factura_Numero);
 
 -- Pago -> Factura
 ALTER TABLE LOS_QUERYOSOS.Pago
 ADD CONSTRAINT FK_Pago_Factura
-FOREIGN KEY (Pago_Factura) REFERENCES LOS_QUERYOSOS.Factura(Factura_Codigo);
+FOREIGN KEY (Pago_Factura) REFERENCES LOS_QUERYOSOS.Factura(Factura_Numero);
 
 -- Pago -> Medio_De_Pago
 ALTER TABLE LOS_QUERYOSOS.Pago
 ADD CONSTRAINT FK_Pago_Medio_De_Pago
-FOREIGN KEY (Pago_Medio_De_Pago) REFERENCES Medio_De_Pago(Medio_De_Pago_Codigo);
+FOREIGN KEY (Pago_Medio_De_Pago) REFERENCES LOS_QUERYOSOS.Medio_De_Pago(medio_De_Pago_ID);
 
 -- Modulo -> Curso
 ALTER TABLE LOS_QUERYOSOS.Modulo
 ADD CONSTRAINT FK_Modulo_Curso
 FOREIGN KEY (Modulo_Curso) REFERENCES LOS_QUERYOSOS.Curso(Curso_Codigo);
 
--- Trabajo_Practico -> Modulo
+-- Trabajo_Practico -> Curso
 ALTER TABLE LOS_QUERYOSOS.Trabajo_Practico
-ADD CONSTRAINT FK_Trabajo_Practico_Modulo
-FOREIGN KEY (Trabajo_Practico_Modulo) REFERENCES LOS_QUERYOSOS.Modulo(Modulo_Codigo);
+ADD CONSTRAINT FK_Trabajo_Practico_Curso
+FOREIGN KEY (Trabajo_Practico_Curso) REFERENCES LOS_QUERYOSOS.Curso(Curso_Codigo);
 
 -- Trabajo_Practico -> Alumno
 ALTER TABLE LOS_QUERYOSOS.Trabajo_Practico
@@ -584,11 +601,30 @@ SELECT DISTINCT
     p.profesor_Codigo,
     s.sede_Codigo
 FROM gd_esquema.Maestra m
-JOIN LOS_QUERYOSOS.Categoria cat ON cat.categoria_Codigo = m.Curso_Categoria
+JOIN LOS_QUERYOSOS.Categoria cat ON cat.categoria_Detalle = m.Curso_Categoria
 JOIN LOS_QUERYOSOS.Turno t ON t.turno_Detalle = m.Curso_Turno
 JOIN LOS_QUERYOSOS.Profesor p ON p.Profesor_Dni = m.Profesor_Dni
 JOIN LOS_QUERYOSOS.Sede s ON s.Sede_Nombre = m.Sede_Nombre
 WHERE m.Curso_Nombre IS NOT NULL;
+
+--Dia
+INSERT INTO LOS_QUERYOSOS.Dia (dia_Detalle)
+SELECT DISTINCT m.Curso_Dia
+FROM gd_esquema.Maestra m
+WHERE m.Curso_Dia IS NOT NULL;
+
+--Dia Curso
+INSERT INTO LOS_QUERYOSOS.Dia_Curso (
+    dia_Curso_Dia,
+    dia_Curso_Curso
+)
+SELECT DISTINCT
+    d.dia_Codigo,
+    c.Curso_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Dia d ON d.dia_Detalle = m.Curso_Dia
+JOIN LOS_QUERYOSOS.Curso c ON c.Curso_Nombre = m.Curso_Nombre
+WHERE m.Curso_Dia IS NOT NULL;
 
 --Modulo
 INSERT INTO LOS_QUERYOSOS.Modulo (
@@ -643,14 +679,218 @@ FROM gd_esquema.Maestra m
 		d.Direccion_Numero = RIGHT(m.Alumno_Direccion, LEN(m.Alumno_Direccion) - CHARINDEX('N°', m.Alumno_Direccion) - 1)
 WHERE m.Alumno_Dni IS NOT NULL;
 
---
+--Encuesta
+INSERT INTO LOS_QUERYOSOS.Encuesta (
+    encuesta_FechaRegistro,
+    encuesta_Observacion,
+    encuesta_Curso
+)
+SELECT DISTINCT
+    m.Encuesta_FechaRegistro,
+    m.Encuesta_Observacion,
+    c.Curso_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Curso c ON c.Curso_Nombre = m.Curso_Nombre
+WHERE m.Encuesta_FechaRegistro IS NOT NULL;
 
+--Pregunta
+INSERT INTO LOS_QUERYOSOS.Pregunta (
+    pregunta_Detalle,
+    pregunta_Encuesta
+)
+SELECT DISTINCT
+    m.Encuesta_Pregunta1,
+    e.encuesta_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Encuesta e ON 
+    e.encuesta_FechaRegistro = m.Encuesta_FechaRegistro AND
+    e.encuesta_Observacion = m.Encuesta_Observacion
+WHERE m.Encuesta_Pregunta1 IS NOT NULL
 
+UNION ALL
 
+SELECT DISTINCT
+    m.Encuesta_Pregunta2,
+    e.encuesta_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Encuesta e ON 
+    e.encuesta_FechaRegistro = m.Encuesta_FechaRegistro AND
+    e.encuesta_Observacion = m.Encuesta_Observacion
+WHERE m.Encuesta_Pregunta2 IS NOT NULL
 
+UNION ALL
 
+SELECT DISTINCT
+    m.Encuesta_Pregunta3,
+    e.encuesta_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Encuesta e ON 
+    e.encuesta_FechaRegistro = m.Encuesta_FechaRegistro AND
+    e.encuesta_Observacion = m.Encuesta_Observacion
+WHERE m.Encuesta_Pregunta3 IS NOT NULL
 
+UNION ALL
 
+SELECT DISTINCT
+    m.Encuesta_Pregunta4,
+    e.encuesta_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Encuesta e ON 
+    e.encuesta_FechaRegistro = m.Encuesta_FechaRegistro AND
+    e.encuesta_Observacion = m.Encuesta_Observacion
+WHERE m.Encuesta_Pregunta4 IS NOT NULL;
+
+--Respuesta
+INSERT INTO LOS_QUERYOSOS.Respuesta (
+    respuesta_Detalle,
+    respuesta_Pregunta
+)
+SELECT DISTINCT
+    m.Encuesta_Nota1,
+    p1.pregunta_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Pregunta p1 ON p1.pregunta_Detalle = m.Encuesta_Pregunta1
+
+UNION ALL
+
+SELECT DISTINCT
+    m.Encuesta_Nota2,
+    p2.pregunta_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Pregunta p2 ON p2.pregunta_Detalle = m.Encuesta_Pregunta2
+
+UNION ALL
+
+SELECT DISTINCT
+    m.Encuesta_Nota3,
+    p3.pregunta_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Pregunta p3 ON p3.pregunta_Detalle = m.Encuesta_Pregunta3
+
+UNION ALL
+
+SELECT DISTINCT
+    m.Encuesta_Nota4,
+    p4.pregunta_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Pregunta p4 ON p4.pregunta_Detalle = m.Encuesta_Pregunta4;
+
+--Estado
+INSERT INTO LOS_QUERYOSOS.Estado (estado_Detalle)
+SELECT DISTINCT m.Inscripcion_Estado
+FROM gd_esquema.Maestra m
+WHERE m.Inscripcion_Estado IS NOT NULL;
+
+--Inscripcion
+INSERT INTO LOS_QUERYOSOS.Inscripcion (
+    inscripcion_Fecha,
+    inscripcion_Estado,
+    inscripcion_FechaRespuesta,
+    inscripcion_Alumno,
+    inscripcion_Curso
+)
+SELECT DISTINCT
+    m.Inscripcion_Fecha,
+    e.estado_Codigo,
+    m.Inscripcion_Fecha,
+    a.alumno_Codigo,
+    c.Curso_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Estado e ON e.estado_Detalle = m.Inscripcion_Estado
+JOIN LOS_QUERYOSOS.Alumno a ON a.Alumno_Dni = m.Alumno_Dni
+JOIN LOS_QUERYOSOS.Curso c ON c.Curso_Nombre = m.Curso_Nombre
+WHERE m.Inscripcion_Fecha IS NOT NULL;
+
+--ExamenFinal
+INSERT INTO LOS_QUERYOSOS.Examen_Final (
+    examen_Final_Fecha,
+    examen_Final_Hora,
+    examen_Final_Descripcion,
+    examen_Final_Curso
+)
+SELECT DISTINCT
+    m.Examen_Final_Fecha,
+    m.Examen_Final_Hora,
+    m.Examen_Final_Descripcion,
+    c.Curso_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Curso c ON c.Curso_Nombre = m.Curso_Nombre
+WHERE m.Examen_Final_Fecha IS NOT NULL;
+
+--InscripcionFinal
+INSERT INTO LOS_QUERYOSOS.Inscripcion_Final (
+    inscripcion_Final_Fecha,
+    inscripcion_Final_AlumnoCod,
+    inscripcion_Final_AlumnoLeg,
+    inscripcion_Final_ExamenFinal
+)
+SELECT DISTINCT
+    m.Inscripcion_Final_Fecha,
+    a.alumno_Codigo,
+    m.Alumno_Legajo,
+    ef.examen_Final_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Alumno a ON a.Alumno_Dni = m.Alumno_Dni
+JOIN LOS_QUERYOSOS.Examen_Final ef ON 
+    ef.examen_Final_Fecha = m.Examen_Final_Fecha AND
+    ef.examen_Final_Descripcion = m.Examen_Final_Descripcion
+WHERE m.Inscripcion_Final_Fecha IS NOT NULL;
+
+--EvaluacionFinal
+INSERT INTO LOS_QUERYOSOS.Evaluacion_Final (
+    evaluacion_Final_Nota,
+    evaluacion_Final_Presente,
+    evaluacion_Final_Profesor,
+    evaluacion_Final_Alumno
+)
+SELECT DISTINCT
+    m.Evaluacion_Final_Nota,
+    m.Evaluacion_Final_Presente,
+    p.Profesor_Codigo,
+    a.alumno_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Profesor p ON p.Profesor_Dni = m.Profesor_Dni
+JOIN LOS_QUERYOSOS.Alumno a ON a.Alumno_Dni = m.Alumno_Dni
+WHERE m.Evaluacion_Final_Nota IS NOT NULL;
+
+--TrabajoPractico
+INSERT INTO LOS_QUERYOSOS.Trabajo_Practico (
+    trabajo_Practico_Nota,
+    trabajo_Practico_FechaEvaluacion,
+    trabajo_Practico_Curso,
+    trabajo_Practico_Alumno
+)
+SELECT DISTINCT
+    m.Trabajo_Practico_Nota,
+    m.Trabajo_Practico_FechaEvaluacion,
+    c.Curso_Codigo,
+    a.alumno_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Curso c ON c.Curso_Nombre = m.Curso_Nombre
+JOIN LOS_QUERYOSOS.Alumno a ON a.Alumno_Dni = m.Alumno_Dni
+WHERE m.Trabajo_Practico_Nota IS NOT NULL;
+
+--Evaluacion_Alumno
+INSERT INTO LOS_QUERYOSOS.Evaluacion_Alumno (
+    Evaluacion_Alumno_Codigo,
+    Evaluacion_Alumno_Alumno,
+    Evaluacion_Alumno_Nota,
+    Evaluacion_Alumno_Instancia,
+    Evaluacion_Alumno_Presente
+)
+SELECT DISTINCT
+    ec.evaluacion_Curso_Codigo,
+    a.alumno_Codigo,
+    m.Evaluacion_Curso_Nota,
+    m.Evaluacion_Curso_Instancia,
+    m.Evaluacion_Curso_Presente
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Alumno a ON a.Alumno_Dni = m.Alumno_Dni
+JOIN LOS_QUERYOSOS.Modulo mo ON mo.Modulo_Nombre = m.Modulo_Nombre
+JOIN LOS_QUERYOSOS.Evaluacion_Curso ec ON 
+    ec.Evaluacion_Curso_Modulo = mo.modulo_Numero AND
+    ec.Evaluacion_Curso_FechaEvaluacion = m.Evaluacion_Curso_fechaEvaluacion
+WHERE m.Evaluacion_Curso_Nota IS NOT NULL;
 
 
 
