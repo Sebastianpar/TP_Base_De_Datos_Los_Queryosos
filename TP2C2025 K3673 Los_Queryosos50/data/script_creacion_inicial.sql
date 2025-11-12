@@ -1,8 +1,3 @@
-/*
-SELECT * 
-FROM gd_esquema.Maestra
-*/
-
 USE GD2C2025
 GO
 
@@ -29,7 +24,7 @@ CREATE TABLE LOS_QUERYOSOS.Sede(
 GO
 
 CREATE TABLE LOS_QUERYOSOS.Curso(
-	curso_Codigo BIGINT PRIMARY KEY,
+	curso_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
 	curso_Nombre VARCHAR(255),
 	curso_Descripcion VARCHAR(255),
 	curso_FechaInicio DATETIME2(6),
@@ -440,6 +435,11 @@ SELECT DISTINCT
 FROM gd_esquema.Maestra
 WHERE Institucion_Cuit IS NOT NULL;
 
+/*
+SELECT *
+FROM LOS_QUERYOSOS.Institucion;
+*/
+
 --Datos de provincias
 INSERT INTO LOS_QUERYOSOS.Provincia (Provincia_Nombre)
 SELECT DISTINCT sede_provincia
@@ -453,6 +453,11 @@ UNION
 SELECT DISTINCT alumno_provincia
 FROM gd_esquema.Maestra
 WHERE alumno_provincia IS NOT NULL;
+
+/*
+SELECT *
+FROM LOS_QUERYOSOS.Provincia;
+*/
 
 --datos de localidades
 INSERT INTO LOS_QUERYOSOS.Localidad (Localidad_Nombre, Localidad_Provincia)
@@ -470,6 +475,11 @@ SELECT DISTINCT m.Alumno_Localidad, p.provincia_Codigo
 FROM gd_esquema.Maestra m
 	JOIN LOS_QUERYOSOS.Provincia p ON p.Provincia_Nombre = m.Alumno_Provincia
 WHERE m.Alumno_Localidad IS NOT NULL;
+
+/*
+SELECT *
+FROM LOS_QUERYOSOS.Localidad;
+*/
 
 --Datos de direcciones
 INSERT INTO LOS_QUERYOSOS.Direccion (Direccion_Calle, Direccion_Numero, Direccion_Localidad)
@@ -501,6 +511,11 @@ FROM gd_esquema.Maestra m
 JOIN LOS_QUERYOSOS.Localidad l ON l.Localidad_Nombre = m.Alumno_Localidad
 WHERE m.Alumno_Direccion IS NOT NULL;
 
+/*
+SELECT *
+FROM LOS_QUERYOSOS.Direccion;
+*/
+
 --Datos de Contactos
 INSERT INTO LOS_QUERYOSOS.Contacto (Contacto_Mail, Contacto_Telefono)
 SELECT DISTINCT m.Sede_Mail, m.Sede_Telefono
@@ -520,21 +535,27 @@ FROM gd_esquema.Maestra m
 WHERE m.Alumno_Mail IS NOT NULL OR m.Alumno_Telefono IS NOT NULL;
 
 --Datos Sede
-INSERT INTO LOS_QUERYOSOS.Sede (Sede_Nombre, Sede_Institucion, Sede_Direccion, Sede_Contacto)
+INSERT INTO LOS_QUERYOSOS.Sede (sede_Nombre, sede_Institucion, sede_Direccion, sede_Contacto)
 SELECT DISTINCT
     m.Sede_Nombre,
     i.Institucion_Codigo,
     d.direccion_Codigo,
     c.Contacto_ID
 FROM gd_esquema.Maestra m
-	JOIN LOS_QUERYOSOS.Institucion i ON i.Institucion_Cuit = m.Institucion_Cuit
-	JOIN LOS_QUERYOSOS.Direccion d ON 
-		d.Direccion_Calle = LEFT(m.Sede_Direccion, CHARINDEX('N°', m.Sede_Direccion) - 2) AND
-		d.Direccion_Numero = RIGHT(m.Sede_Direccion, LEN(m.Sede_Direccion) - CHARINDEX('N°', m.Sede_Direccion) - 1)
-	JOIN LOS_QUERYOSOS.Contacto c ON 
-		c.Contacto_Mail = m.Sede_Mail AND
-		c.Contacto_Telefono = m.Sede_Telefono
+JOIN LOS_QUERYOSOS.Institucion i 
+    ON i.Institucion_Cuit = m.Institucion_Cuit
+JOIN LOS_QUERYOSOS.Provincia p 
+    ON p.provincia_Nombre = m.Sede_Provincia
+JOIN LOS_QUERYOSOS.Localidad l 
+    ON l.localidad_Nombre = m.Sede_Localidad AND l.localidad_Provincia = p.provincia_Codigo
+JOIN LOS_QUERYOSOS.Direccion d 
+    ON d.direccion_Calle = LEFT(m.Sede_Direccion, CHARINDEX('N°', m.Sede_Direccion) - 2)
+    AND d.direccion_Numero = RIGHT(m.Sede_Direccion, LEN(m.Sede_Direccion) - CHARINDEX('N°', m.Sede_Direccion) - 1)
+    AND d.direccion_Localidad = l.localidad_Codigo
+JOIN LOS_QUERYOSOS.Contacto c 
+    ON c.Contacto_Mail = m.Sede_Mail AND c.Contacto_Telefono = m.Sede_Telefono
 WHERE m.Sede_Nombre IS NOT NULL;
+
 
 -- CategoriaCurso
 INSERT INTO LOS_QUERYOSOS.Categoria (categoria_Detalle)
@@ -573,9 +594,12 @@ FROM gd_esquema.Maestra m
 		c.Contacto_Telefono = m.Profesor_Telefono
 WHERE m.Profesor_Dni IS NOT NULL;
 
+
+SET IDENTITY_INSERT LOS_QUERYOSOS.Curso ON;
+
 --Curso
 INSERT INTO LOS_QUERYOSOS.Curso (
-    Curso_Codigo,
+    curso_Codigo,
     Curso_Nombre,
     Curso_Descripcion,
     Curso_FechaInicio,
@@ -587,25 +611,31 @@ INSERT INTO LOS_QUERYOSOS.Curso (
     Curso_Profesor,
     Curso_Sede
 )
-SELECT
+SELECT DISTINCT
     m.Curso_Codigo,
-    MIN(m.Curso_Nombre) AS Curso_Nombre,
-    MIN(m.Curso_Descripcion) AS Curso_Descripcion,
-    MIN(m.Curso_FechaInicio) AS Curso_FechaInicio,
-    MIN(m.Curso_FechaFin) AS Curso_FechaFin,
-    MIN(m.Curso_DuracionMeses) AS Curso_DuracionMeses,
-    MIN(m.Curso_PrecioMensual) AS Curso_PrecioMensual,
-    MIN(cat.Categoria_Codigo) AS Curso_Categoria,
-    MIN(t.Turno_Codigo) AS Curso_Turno,
-    MIN(p.Profesor_Codigo) AS Curso_Profesor,
-    MIN(s.Sede_Codigo) AS Curso_Sede
+    m.Curso_Nombre,
+    m.Curso_Descripcion,
+    m.Curso_FechaInicio,
+    m.Curso_FechaFin,
+    m.Curso_DuracionMeses,
+    m.Curso_PrecioMensual,
+    cat.categoria_Codigo,
+    t.turno_Codigo,
+    p.profesor_Codigo,
+    s.sede_Codigo
 FROM gd_esquema.Maestra m
-JOIN LOS_QUERYOSOS.Categoria cat ON cat.Categoria_Detalle = m.Curso_Categoria
-JOIN LOS_QUERYOSOS.Turno t ON t.Turno_Detalle = m.Curso_Turno
+JOIN LOS_QUERYOSOS.Categoria cat ON cat.categoria_Detalle = m.Curso_Categoria
+JOIN LOS_QUERYOSOS.Turno t ON t.turno_Detalle = m.Curso_Turno
 JOIN LOS_QUERYOSOS.Profesor p ON p.Profesor_Dni = m.Profesor_Dni
 JOIN LOS_QUERYOSOS.Sede s ON s.Sede_Nombre = m.Sede_Nombre
-WHERE m.Curso_Codigo IS NOT NULL
-GROUP BY m.Curso_Codigo;
+WHERE m.Curso_Codigo IS NOT NULL;
+
+SET IDENTITY_INSERT LOS_QUERYOSOS.Curso OFF;
+
+DECLARE @max BIGINT;
+SELECT @max = MAX(curso_Codigo) FROM LOS_QUERYOSOS.Curso;
+
+DBCC CHECKIDENT ('LOS_QUERYOSOS.Curso', RESEED, @max);
 
 --Dia
 INSERT INTO LOS_QUERYOSOS.Dia (dia_Detalle)
@@ -671,13 +701,18 @@ SELECT DISTINCT
     c.contacto_ID,
     d.direccion_Codigo
 FROM gd_esquema.Maestra m
-	JOIN LOS_QUERYOSOS.Contacto c ON 
-		c.Contacto_Mail = m.Alumno_Mail AND
-		c.Contacto_Telefono = m.Alumno_Telefono
-	JOIN LOS_QUERYOSOS.Direccion d ON 
-		d.Direccion_Calle = LEFT(m.Alumno_Direccion, CHARINDEX('N°', m.Alumno_Direccion) - 2) AND
-		d.Direccion_Numero = RIGHT(m.Alumno_Direccion, LEN(m.Alumno_Direccion) - CHARINDEX('N°', m.Alumno_Direccion) - 1)
+JOIN LOS_QUERYOSOS.Contacto c 
+    ON c.Contacto_Mail = m.Alumno_Mail AND c.Contacto_Telefono = m.Alumno_Telefono
+JOIN LOS_QUERYOSOS.Provincia p 
+    ON p.provincia_Nombre = m.Alumno_Provincia
+JOIN LOS_QUERYOSOS.Localidad l 
+    ON l.localidad_Nombre = m.Alumno_Localidad AND l.localidad_Provincia = p.provincia_Codigo
+JOIN LOS_QUERYOSOS.Direccion d 
+    ON d.Direccion_Calle = LEFT(m.Alumno_Direccion, CHARINDEX('N°', m.Alumno_Direccion) - 2)
+    AND d.Direccion_Numero = RIGHT(m.Alumno_Direccion, LEN(m.Alumno_Direccion) - CHARINDEX('N°', m.Alumno_Direccion) - 1)
+    AND d.direccion_Localidad = l.localidad_Codigo
 WHERE m.Alumno_Dni IS NOT NULL;
+
 
 --Encuesta
 INSERT INTO LOS_QUERYOSOS.Encuesta (
@@ -885,12 +920,17 @@ SELECT DISTINCT
     m.Evaluacion_Curso_Instancia,
     m.Evaluacion_Curso_Presente
 FROM gd_esquema.Maestra m
-JOIN LOS_QUERYOSOS.Alumno a ON a.Alumno_Dni = m.Alumno_Dni
-JOIN LOS_QUERYOSOS.Modulo mo ON mo.Modulo_Nombre = m.Modulo_Nombre
-JOIN LOS_QUERYOSOS.Evaluacion_Curso ec ON 
-    ec.Evaluacion_Curso_Modulo = mo.modulo_Numero AND
-    ec.Evaluacion_Curso_FechaEvaluacion = m.Evaluacion_Curso_fechaEvaluacion
-WHERE m.Evaluacion_Curso_Nota IS NOT NULL;
+JOIN LOS_QUERYOSOS.Alumno a 
+    ON a.Alumno_Dni = m.Alumno_Dni
+JOIN LOS_QUERYOSOS.Curso c 
+    ON c.Curso_Nombre = m.Curso_Nombre
+JOIN LOS_QUERYOSOS.Modulo mo 
+    ON mo.Modulo_Nombre = m.Modulo_Nombre AND mo.Modulo_Curso = c.Curso_Codigo
+JOIN LOS_QUERYOSOS.Evaluacion_Curso ec 
+    ON ec.Evaluacion_Curso_Modulo = mo.modulo_Numero 
+   AND ec.Evaluacion_Curso_FechaEvaluacion = m.Evaluacion_Curso_fechaEvaluacion
+WHERE m.Evaluacion_Curso_Presente IS NOT NULL;
+
 
 
 --Periodo
@@ -908,7 +948,13 @@ SELECT DISTINCT
 FROM gd_esquema.Maestra m
 WHERE m.Pago_MedioPago IS NOT NULL;
 
+
+
+--habilito isrcion manual de pk
+SET IDENTITY_INSERT LOS_QUERYOSOS.Factura ON;
+
 -- Facturas
+
 INSERT INTO LOS_QUERYOSOS.Factura (
     Factura_Numero,
     Factura_FechaEmision,
@@ -925,6 +971,14 @@ JOIN LOS_QUERYOSOS.Alumno a
     ON a.Alumno_Dni = m.Alumno_Dni
 WHERE m.Factura_Numero IS NOT NULL
 GROUP BY m.Factura_Numero;
+
+--deshabilito la insercion manual
+SET IDENTITY_INSERT LOS_QUERYOSOS.Factura OFF;
+
+--actualizo la ultima pk
+DECLARE @maxFactura BIGINT;
+SELECT @maxFactura = MAX(Factura_Numero) FROM LOS_QUERYOSOS.Factura;
+DBCC CHECKIDENT ('LOS_QUERYOSOS.Factura', RESEED, @maxFactura);
 
 -- Detalle Factura
 INSERT INTO LOS_QUERYOSOS.Detalle_Factura (
@@ -944,3 +998,25 @@ JOIN LOS_QUERYOSOS.Periodo p
 JOIN LOS_QUERYOSOS.Curso c on c.curso_Codigo = m.Curso_Codigo
 WHERE m.Detalle_Factura_Importe IS NOT NULL;
 
+-- Pagos
+INSERT INTO LOS_QUERYOSOS.Pago (
+    Pago_Fecha,
+    Pago_Importe,
+    Pago_Medio_De_Pago,
+    Pago_Factura
+)
+SELECT DISTINCT
+    m.Pago_Fecha,
+    m.Pago_Importe,
+    mp.Medio_De_Pago_ID,
+    f.Factura_Numero
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Medio_De_Pago mp
+    ON mp.Medio_De_Pago_Detalle = m.Pago_MedioPago
+JOIN LOS_QUERYOSOS.Factura f
+    ON f.Factura_Numero = m.Factura_Numero
+WHERE 
+    m.Pago_Fecha IS NOT NULL AND
+    m.Pago_Importe IS NOT NULL AND
+    m.Pago_MedioPago IS NOT NULL AND
+    m.Factura_Numero IS NOT NULL;

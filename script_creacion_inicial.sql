@@ -1,7 +1,7 @@
-/*
+
 SELECT * 
 FROM gd_esquema.Maestra
-*/
+
 
 USE GD2C2025
 GO
@@ -164,7 +164,7 @@ CREATE TABLE LOS_QUERYOSOS.Evaluacion_Final(
 GO
 
 CREATE TABLE LOS_QUERYOSOS.Factura(
-	factura_Numero BIGINT IDENTITY(1,1) PRIMARY KEY,
+	factura_Numero BIGINT PRIMARY KEY,
 	factura_FechaEmision DATETIME2(6),
 	factura_FechaVencimiento DATETIME2(6) ,
 	factura_Alumno BIGINT --FK a Alumno
@@ -893,7 +893,55 @@ JOIN LOS_QUERYOSOS.Evaluacion_Curso ec ON
 WHERE m.Evaluacion_Curso_Nota IS NOT NULL;
 
 
+--Periodo
+INSERT INTO LOS_QUERYOSOS.Periodo (Periodo_Anio, Periodo_Mes)
+SELECT DISTINCT
+	m.Periodo_Anio,
+	m.Periodo_Mes
+FROM gd_esquema.Maestra m
+WHERE m.Periodo_Anio IS NOT NULL AND m.Periodo_Mes IS NOT NULL;
 
+--Medios de Pago
+INSERT INTO LOS_QUERYOSOS.Medio_De_Pago (Medio_De_Pago_Detalle)
+SELECT DISTINCT
+	m.Pago_MedioPago
+FROM gd_esquema.Maestra m
+WHERE m.Pago_MedioPago IS NOT NULL;
+
+-- Facturas
+INSERT INTO LOS_QUERYOSOS.Factura (
+    Factura_Numero,
+    Factura_FechaEmision,
+    Factura_FechaVencimiento,
+    Factura_Alumno
+)
+SELECT DISTINCT
+    m.Factura_Numero,
+    MIN(m.Factura_FechaEmision) AS Factura_FechaEmision,
+    MIN(m.Factura_FechaVencimiento) AS Factura_FechaVencimiento,
+    MIN(a.Alumno_Codigo) AS Factura_Alumno
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Alumno a
+    ON a.Alumno_Dni = m.Alumno_Dni
+WHERE m.Factura_Numero IS NOT NULL
+GROUP BY m.Factura_Numero;
+
+-- Detalle Factura
+INSERT INTO LOS_QUERYOSOS.Detalle_Factura (
+    Detalle_Factura_Importe,
+    Detalle_Factura_Factura,
+    Detalle_Factura_Periodo,
+	Detalle_Factura_Curso
+)
+SELECT DISTINCT
+    m.Detalle_Factura_Importe,
+    m.Factura_Numero,
+    p.Periodo_Numero,
+	m.Curso_Codigo
+FROM gd_esquema.Maestra m
+JOIN LOS_QUERYOSOS.Periodo p
+    ON p.Periodo_Anio = m.Periodo_Anio AND p.Periodo_Mes = m.Periodo_Mes
+WHERE m.Detalle_Factura_Importe IS NOT NULL;
 
 
 
