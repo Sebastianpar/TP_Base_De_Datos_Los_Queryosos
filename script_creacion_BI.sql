@@ -237,7 +237,7 @@ go
 
 /**************************** FUNCIONES AUXILIARES *******************************/
 
-CREATE FUNCTION devolverCuatri(@FECHA DATETIME)
+CREATE FUNCTION LOS_QUERYOSOS.devolverCuatri(@FECHA DATETIME)
 RETURNS INT
 AS
 BEGIN
@@ -263,7 +263,7 @@ BEGIN
 END;
 GO
 
-CREATE FUNCTION devolverSemestre(@FECHA DATETIME)
+CREATE FUNCTION LOS_QUERYOSOS.devolverSemestre(@FECHA DATETIME)
 RETURNS INT
 AS
 BEGIN
@@ -284,7 +284,7 @@ BEGIN
 END;
 GO
 
-CREATE FUNCTION devolverRangoEtareo(@FECHA_NACIMIENTO DATETIME)
+CREATE FUNCTION LOS_QUERYOSOS.devolverRangoEtareo(@FECHA_NACIMIENTO DATETIME)
 RETURNS CHAR(8)
 AS
 BEGIN
@@ -322,7 +322,7 @@ BEGIN
 END;
 GO
 
-CREATE FUNCTION pagadoEnTermino(@FECHA_PAGO DATETIME, @FECHA_VENCIMIENTO DATETIME)
+CREATE FUNCTION LOS_QUERYOSOS.pagadoEnTermino(@FECHA_PAGO DATETIME, @FECHA_VENCIMIENTO DATETIME)
 RETURNS BIT
 BEGIN
     DECLARE @BIT BIT
@@ -338,7 +338,7 @@ BEGIN
 END
 GO
 
-CREATE FUNCTION aproboFinal(@NOTA BIGINT) --para tabla Evaluacion_Finales
+CREATE FUNCTION LOS_QUERYOSOS.aproboFinal(@NOTA BIGINT) --para tabla Evaluacion_Finales
 RETURNS BIT
 BEGIN
     DECLARE @BIT BIT
@@ -355,7 +355,7 @@ BEGIN
 END
 GO
 
-CREATE FUNCTION aproboAlumno(@NOTA BIGINT) --para tabla Evaluacion_Alumno o la sacamos y el calclo de la vista 3 lo hacemos en el momento?
+CREATE FUNCTION LOS_QUERYOSOS.aproboAlumno(@NOTA BIGINT) --para tabla Evaluacion_Alumno o la sacamos y el calclo de la vista 3 lo hacemos en el momento?
 RETURNS BIT
 BEGIN
     DECLARE @BIT BIT
@@ -374,7 +374,7 @@ GO
 
 /**************************** PROCEDIMIENTOS *******************************/
 
-CREATE PROCEDURE MigrarTiemposSinRepetir
+CREATE PROCEDURE LOS_QUERYOSOS.MigrarTiemposSinRepetir
 AS
 BEGIN
     CREATE TABLE #TempTiempo (
@@ -388,8 +388,8 @@ BEGIN
     SELECT DISTINCT 
         YEAR(x.fecha), 
         MONTH(x.fecha),
-        dbo.devolverCuatri(x.fecha),
-        dbo.devolverSemestre(x.fecha)
+        LOS_QUERYOSOS.devolverCuatri(x.fecha),
+        LOS_QUERYOSOS.devolverSemestre(x.fecha)
     FROM (
         SELECT examen_Final_Fecha AS fecha FROM LOS_QUERYOSOS.Examen_Final
         WHERE examen_Final_Fecha IS NOT NULL
@@ -429,7 +429,7 @@ END;
 GO
 
 
-CREATE FUNCTION devolverTiempoDeFecha (@fecha SMALLDATETIME)
+CREATE FUNCTION LOS_QUERYOSOS.devolverTiempoDeFecha (@fecha SMALLDATETIME)
 RETURNS INT
 AS
 BEGIN
@@ -441,8 +441,8 @@ BEGIN
 
     SET @anio = YEAR(@fecha);
     SET @mes = MONTH(@fecha);
-    SET @cuatri = dbo.devolverCuatri(@fecha); 
-    SET @semest = dbo.devolverSemestre(@fecha);
+    SET @cuatri = LOS_QUERYOSOS.devolverCuatri(@fecha); 
+    SET @semest = LOS_QUERYOSOS.devolverSemestre(@fecha);
 
     
     SELECT @tiempo_codig = tiempo_Codigo
@@ -509,7 +509,7 @@ BEGIN
 		a.alumno_FechaNacimiento,
 		loc.localidad_Nombre,
 		prov.provincia_Nombre,
-		dbo.devolverRangoEtareo(a.alumno_FechaNacimiento)
+		LOS_QUERYOSOS.devolverRangoEtareo(a.alumno_FechaNacimiento)
 	FROM LOS_QUERYOSOS.Alumno a
 	LEFT JOIN LOS_QUERYOSOS.Direccion dir ON dir.direccion_Codigo = alumno_Direccion
 	LEFT JOIN LOS_QUERYOSOS.Localidad loc ON loc.localidad_Codigo = dir.direccion_Localidad
@@ -531,7 +531,7 @@ BEGIN
 		profesor_Nombre,
 		profesor_Apellido,
 		profesor_FechaNacimiento,
-		dbo.devolverRangoEtareo(profesor_FechaNacimiento)
+		LOS_QUERYOSOS.devolverRangoEtareo(profesor_FechaNacimiento)
 	FROM LOS_QUERYOSOS.Profesor;				
 END
 GO	
@@ -603,7 +603,7 @@ BEGIN
 		inscripcion_Sede
 	)
 	SELECT
-		dbo.devolverTiempoDeFecha(i.inscripcion_Fecha),
+		LOS_QUERYOSOS.devolverTiempoDeFecha(i.inscripcion_Fecha),
 		est.estado_Codigo,
 		i.inscripcion_FechaRespuesta,
     
@@ -633,11 +633,11 @@ BEGIN
 		evaluacion_Alumno_Nota_TP
 	)
 	SELECT
-		dbo.devolverTiempoDeFecha(ec.evaluacion_Curso_FechaEvaluacion),
+		LOS_QUERYOSOS.devolverTiempoDeFecha(ec.evaluacion_Curso_FechaEvaluacion),
 		bal.alumno_Codigo,
 		bcu.curso_Codigo,
 		bse.sede_Codigo,
-		dbo.aproboAlumno(ea.evaluacion_Alumno_Nota),
+		LOS_QUERYOSOS.aproboAlumno(ea.evaluacion_Alumno_Nota),
 		ea.evaluacion_Alumno_Nota,
 		tp.trabajo_Practico_Nota
 	FROM LOS_QUERYOSOS.Evaluacion_Alumno ea
@@ -668,11 +668,11 @@ BEGIN
 		evaluacion_Finales_Presente
 	)
 	SELECT
-		dbo.devolverTiempoDeFecha(ex.examen_Final_Fecha),
+		LOS_QUERYOSOS.devolverTiempoDeFecha(ex.examen_Final_Fecha),
 		bal.alumno_Codigo,
 		bcu.curso_Codigo,
 		bse.sede_Codigo,
-		dbo.aproboFinal(ex.examen_Final_Nota),
+		LOS_QUERYOSOS.aproboFinal(ex.examen_Final_Nota),
 		ex.examen_Final_Nota,
 		ex.examen_Final_Presente
 	FROM LOS_QUERYOSOS.Examen_Final ex
@@ -700,12 +700,12 @@ BEGIN
 		pagos_Fecha_Vencimiento
 	)
 	SELECT
-		dbo.devolverTiempoDeFecha(p.pago_Fecha),
+		LOS_QUERYOSOS.devolverTiempoDeFecha(p.pago_Fecha),
 		bmp.medio_De_Pago_Codigo,
 		bal.alumno_Codigo,
 		df.detalle_Factura_Importe,
 		p.pago_Importe,
-		dbo.pagadoEnTermino(p.pago_Fecha, f.factura_FechaVencimiento),
+		LOS_QUERYOSOS.pagadoEnTermino(p.pago_Fecha, f.factura_FechaVencimiento),
 		(df.detalle_Factura_Importe - p.pago_Importe),
 		f.factura_FechaVencimiento
 	FROM LOS_QUERYOSOS.Pago p
