@@ -143,18 +143,20 @@ CREATE TABLE LOS_QUERYOSOS.Examen_Final(
 	examen_Final_Fecha DATETIME2(6),
 	examen_Final_Hora VARCHAR(255),
 	examen_Final_Descripcion VARCHAR(255),
-	examen_Final_Curso BIGINT --FK a Curso
+	examen_Final_Curso BIGINT, --FK a Curso
+	examen_Final_Nota BIGINT,
+	examen_Final_Presente BIT
 );
 GO
 
-CREATE TABLE LOS_QUERYOSOS.Evaluacion_Final(
-	evaluacion_Final_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
-	evaluacion_Final_Nota BIGINT,
-	evaluacion_Final_Presente BIT,
-	evaluacion_Final_Profesor BIGINT,--FK a Profesor
-	evaluacion_Final_Alumno BIGINT --FK a Alumno
-);
-GO
+--CREATE TABLE LOS_QUERYOSOS.Evaluacion_Final(
+--	evaluacion_Final_Codigo BIGINT IDENTITY(1,1) PRIMARY KEY,
+--	evaluacion_Final_Nota BIGINT,
+--	evaluacion_Final_Presente BIT,
+--	evaluacion_Final_Profesor BIGINT,--FK a Profesor
+--	evaluacion_Final_Alumno BIGINT --FK a Alumno
+--);
+--GO
 
 CREATE TABLE LOS_QUERYOSOS.Factura(
 	factura_Numero BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -363,15 +365,15 @@ ALTER TABLE LOS_QUERYOSOS.Examen_Final
 ADD CONSTRAINT FK_Examen_Final_Curso
 FOREIGN KEY (Examen_Final_Curso) REFERENCES LOS_QUERYOSOS.Curso(Curso_Codigo);
 
--- Evaluacion_Final -> Profesor
-ALTER TABLE LOS_QUERYOSOS.Evaluacion_Final
-ADD CONSTRAINT FK_Evaluacion_Final_Profesor
-FOREIGN KEY (Evaluacion_Final_Profesor) REFERENCES LOS_QUERYOSOS.Profesor(Profesor_Codigo);
+---- Evaluacion_Final -> Profesor
+--ALTER TABLE LOS_QUERYOSOS.Evaluacion_Final
+--ADD CONSTRAINT FK_Evaluacion_Final_Profesor
+--FOREIGN KEY (Evaluacion_Final_Profesor) REFERENCES LOS_QUERYOSOS.Profesor(Profesor_Codigo);
 
--- Evaluacion_Final -> Alumno
-ALTER TABLE LOS_QUERYOSOS.Evaluacion_Final
-ADD CONSTRAINT FK_Evaluacion_Final_Alumno
-FOREIGN KEY (Evaluacion_Final_Alumno) REFERENCES LOS_QUERYOSOS.Alumno(Alumno_Codigo);
+---- Evaluacion_Final -> Alumno
+--ALTER TABLE LOS_QUERYOSOS.Evaluacion_Final
+--ADD CONSTRAINT FK_Evaluacion_Final_Alumno
+--FOREIGN KEY (Evaluacion_Final_Alumno) REFERENCES LOS_QUERYOSOS.Alumno(Alumno_Codigo);
 
 -- Encuesta -> Curso
 ALTER TABLE LOS_QUERYOSOS.Encuesta
@@ -841,13 +843,17 @@ INSERT INTO LOS_QUERYOSOS.Examen_Final (
     examen_Final_Fecha,
     examen_Final_Hora,
     examen_Final_Descripcion,
-    examen_Final_Curso
+    examen_Final_Curso,
+	examen_Final_Nota,
+	examen_Final_Presente
 )
 SELECT DISTINCT
     m.Examen_Final_Fecha,
     m.Examen_Final_Hora,
     m.Examen_Final_Descripcion,
-    c.Curso_Codigo
+    c.Curso_Codigo,
+	m.Evaluacion_Final_Nota,
+    m.Evaluacion_Final_Presente
 FROM gd_esquema.Maestra m
 JOIN LOS_QUERYOSOS.Curso c ON c.Curso_Nombre = m.Curso_Nombre
 WHERE m.Examen_Final_Fecha IS NOT NULL;
@@ -872,21 +878,21 @@ JOIN LOS_QUERYOSOS.Examen_Final ef ON
 WHERE m.Inscripcion_Final_Fecha IS NOT NULL;
 
 --EvaluacionFinal
-INSERT INTO LOS_QUERYOSOS.Evaluacion_Final (
-    evaluacion_Final_Nota,
-    evaluacion_Final_Presente,
-    evaluacion_Final_Profesor,
-    evaluacion_Final_Alumno
-)
-SELECT DISTINCT
-    m.Evaluacion_Final_Nota,
-    m.Evaluacion_Final_Presente,
-    p.Profesor_Codigo,
-    a.alumno_Codigo
-FROM gd_esquema.Maestra m
-JOIN LOS_QUERYOSOS.Profesor p ON p.Profesor_Dni = m.Profesor_Dni
-JOIN LOS_QUERYOSOS.Alumno a ON a.Alumno_Dni = m.Alumno_Dni
-WHERE m.Evaluacion_Final_Nota IS NOT NULL;
+--INSERT INTO LOS_QUERYOSOS.Evaluacion_Final (
+--    evaluacion_Final_Nota,
+--    evaluacion_Final_Presente,
+--    evaluacion_Final_Profesor,
+--    evaluacion_Final_Alumno
+--)
+--SELECT DISTINCT
+--    m.Evaluacion_Final_Nota,
+--    m.Evaluacion_Final_Presente,
+--    p.Profesor_Codigo,
+--    a.alumno_Codigo
+--FROM gd_esquema.Maestra m
+--JOIN LOS_QUERYOSOS.Profesor p ON p.Profesor_Dni = m.Profesor_Dni
+--JOIN LOS_QUERYOSOS.Alumno a ON a.Alumno_Dni = m.Alumno_Dni
+--WHERE m.Evaluacion_Final_Nota IS NOT NULL;
 
 --TrabajoPractico
 INSERT INTO LOS_QUERYOSOS.Trabajo_Practico (
