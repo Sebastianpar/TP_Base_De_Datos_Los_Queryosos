@@ -809,7 +809,7 @@ GO
 
 /*1-Categorías y turnos más solicitados. Las 3 categorías de cursos y turnos con mayor cantidad de inscriptos por año por sede.*/
 
-CREATE VIEW BI_Categorias_Turnos_Solicitados AS
+CREATE VIEW LOS_QUERYOSOS.V_Categorias_Turnos_Solicitados AS
 SELECT
     T.tiempo_Anio AS Anio,
     S.sede_Nombre AS Sede,
@@ -832,7 +832,7 @@ GO
 
 /*2-Tasa de rechazo de inscripciones: Porcentaje de inscripciones rechazadas por mes por sede (sobre el total de inscripciones).*/
 
-CREATE VIEW BI_Tasa_Rechazo_Inscripciones AS
+CREATE VIEW LOS_QUERYOSOS.V_Tasa_Rechazo_Inscripciones AS
 SELECT
     T.tiempo_Anio AS Anio,
     T.tiempo_Mes AS Mes,
@@ -927,7 +927,7 @@ GO
 
 /*5-Nota promedio de finales. Promedio de nota de finales según el rango etario del alumno y la categoría del curso por semestre.*/
 
-CREATE VIEW LOS_QUERYOSOS.BI_V_Promedio_Finales_Semestre AS
+CREATE VIEW LOS_QUERYOSOS.V_Promedio_Finales_Semestre AS
 SELECT
     T.tiempo_Anio AS Anio,
     T.tiempo_Semestre AS Semestre,
@@ -995,7 +995,7 @@ GO
 /*8-Tasa de Morosidad Financiera mensual. Se calcula teniendo en cuenta el total de importes adeudados sobre facturación esperada en el mes. 
 El monto adeudado se obtiene a partir de las facturas que no tengan pago registrado en dicho mes.*/
 
-CREATE VIEW LOS_QUERYOSOS.vw_MorosidadMensual AS
+CREATE VIEW LOS_QUERYOSOS.V_MorosidadMensual AS
 SELECT
     t.tiempo_Anio AS Anio,
     t.tiempo_Mes AS Mes,
@@ -1016,7 +1016,7 @@ GO
 
 /*9-Ingresos por categoría de cursos: Las 3 categorías de cursos que generan mayores ingresos por sede, por año*/
 
-CREATE VIEW LOS_QUERYOSOS.Top3_Ingresos_Categoria AS
+CREATE VIEW LOS_QUERYOSOS.V_Top3_Ingresos_Categoria AS
 SELECT 
     *
 FROM (
@@ -1044,6 +1044,7 @@ FROM (
 ) X
 WHERE rn <= 3;
 GO
+
 /*10-Índice de satisfacción. Índice de satisfacción anual, según rango etario de los profesores y sede. 
 El índice de satisfacción es igual a ((%satisfechos - oinsatisfechos) +100)/2.
 Teniendo en cuenta que
@@ -1051,7 +1052,7 @@ o Satisfechos: Notas entre 7 y 10
 o Neutrales: Notas entre 5 y 6
 o Insatisfechos: Notas entre 1 y 4 */
 
---CREATE VIEW LOS_QUERYOSOS.vw_IndiceSatisfaccion AS
+--CREATE VIEW LOS_QUERYOSOS.V_IndiceSatisfaccion AS
 --SELECT
 --    t.tiempo_Anio AS Anio,
 --    s.sede_Codigo AS Sede,
